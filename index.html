@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#075e54">
+  <title>MertChat — Mesajlaşma</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="authScreen" class="auth-screen">
+    <section class="auth-card">
+      <div class="brand-mark">M</div>
+      <h1>MertChat</h1>
+      <p class="muted">Bağlan, sohbet et.</p>
+      <div class="auth-tabs">
+        <button id="showLogin" class="tab active" type="button">Giriş yap</button>
+        <button id="showRegister" class="tab" type="button">Hesap oluştur</button>
+      </div>
+      <form id="authForm">
+        <label for="username">Kullanıcı adı</label>
+        <input id="username" name="username" type="text" minlength="3" maxlength="20"
+               autocomplete="username" placeholder="Örn. mert_01" required>
+        <label for="password">Şifre</label>
+        <input id="password" name="password" type="password" minlength="6"
+               autocomplete="current-password" placeholder="En az 6 karakter" required>
+        <button id="authSubmit" class="primary-btn" type="submit">Giriş yap</button>
+      </form>
+      <p id="authMessage" class="status-message" role="status"></p>
+      <p class="tiny-note">Gerçek hesaplar ve sohbetler için Firebase kurulumu gerekir. Kurulum adımları README dosyasında.</p>
+    </section>
+  </main>
+
+  <section id="appScreen" class="app-screen hidden">
+    <aside id="sidebar" class="sidebar">
+      <header class="sidebar-header">
+        <div class="brand-inline"><span class="brand-small">M</span><strong>MertChat</strong></div>
+        <div class="header-actions">
+          <button id="adminButton" class="icon-btn hidden" type="button" title="Yönetici paneli" aria-label="Yönetici paneli">⚙</button>
+          <button id="logoutButton" class="icon-btn" type="button" title="Çıkış yap" aria-label="Çıkış yap">↪</button>
+        </div>
+      </header>
+      <div class="current-user">
+        <div id="myAvatar" class="avatar">M</div>
+        <div class="current-user-text"><strong id="myUsername">Kullanıcı</strong><span>Hesabın</span></div>
+      </div>
+      <div class="search-wrap">
+        <input id="userSearch" type="search" placeholder="Kullanıcı ara..." aria-label="Kullanıcı ara">
+      </div>
+      <div class="list-heading">KULLANICILAR <span id="userCount">0</span></div>
+      <div id="usersList" class="users-list">
+        <p class="empty-list">Kullanıcılar yükleniyor...</p>
+      </div>
+      <footer class="sidebar-footer">MertChat · Sohbetlerin burada</footer>
+    </aside>
+
+    <section id="chatPanel" class="chat-panel">
+      <div id="welcomePanel" class="welcome-panel">
+        <div class="welcome-logo">M</div>
+        <h2>MertChat'e hoş geldin!</h2>
+        <p>Sohbet etmek için soldaki listeden bir kullanıcı seç.</p>
+        <p class="privacy-note">Şifreni veya özel bilgilerini kimseyle paylaşma.</p>
+      </div>
+      <div id="conversation" class="conversation hidden">
+        <header class="chat-header">
+          <button id="backButton" class="icon-btn back-btn" type="button" aria-label="Kullanıcı listesine dön">‹</button>
+          <div id="chatAvatar" class="avatar">?</div>
+          <div class="chat-person"><strong id="chatUsername">Kullanıcı</strong><span id="chatStatus">MertChat kullanıcısı</span></div>
+        </header>
+        <div id="messages" class="messages" aria-live="polite">
+          <p class="message-placeholder">Mesajlar yükleniyor...</p>
+        </div>
+        <form id="messageForm" class="message-form">
+          <input id="messageInput" type="text" maxlength="2000" placeholder="Mesaj yaz..." autocomplete="off" required>
+          <button class="send-btn" type="submit" aria-label="Mesaj gönder">➤</button>
+        </form>
+      </div>
+      <section id="adminPanel" class="admin-panel hidden">
+        <header class="chat-header">
+          <button id="closeAdmin" class="icon-btn" type="button" aria-label="Kapat">‹</button>
+          <div class="chat-person"><strong>Yönetici paneli</strong><span>Kayıtlı kullanıcılar</span></div>
+        </header>
+        <div class="admin-content">
+          <h2>Kullanıcılar</h2>
+          <p class="muted">Bu listede kullanıcı adları ve son görülme bilgileri yer alır. Şifreler hiçbir zaman gösterilmez.</p>
+          <div id="adminUsers" class="admin-users">Yükleniyor...</div>
+        </div>
+      </section>
+    </section>
+  </section>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
