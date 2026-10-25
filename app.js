@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 
 import {
@@ -23,7 +24,6 @@ import {
   serverTimestamp,
   where,
   getDocs,
-  runTransaction,
   updateDoc,
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
@@ -36,6 +36,7 @@ import {
   onDisconnect
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
+// Firebase ayarları
 const firebaseConfig = {
   apiKey: "AIzaSyBLT1Qu-oTpacg3pwI2k-MOfVbazAi9Z3Y",
   authDomain: "mertchat-53652.firebaseapp.com",
@@ -54,6 +55,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const realtimeDb = getDatabase(app);
 
+// HTML elemanları
 const authScreen = document.querySelector("#authScreen");
 const appScreen = document.querySelector("#appScreen");
 const authForm = document.querySelector("#authForm");
@@ -83,10 +85,19 @@ let stopAdminListener = null;
 let stopPresenceListener = null;
 let stopConnectionListener = null;
 
+// Bildirim dinleyicileri
+let stopChatNotificationsListener = null;
+const notificationMessageListeners = new Map();
+const latestNotificationMessageIds = new Map();
+
+let notificationAudioContext = null;
+let notificationPermissionRequested = false;
+
 let toastTimer;
 let activeChatId = null;
 let markingRead = new Set();
 
+// Genel yardımcılar
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
@@ -163,20 +174,274 @@ function makeChatId(uidA, uidB) {
   return [uidA, uidB].sort().join("_");
 }
 
+// Dinleyicileri kapat
 function cleanListenerStops() {
   if (stopUsersListener) stopUsersListener();
   if (stopMessagesListener) stopMessagesListener();
   if (stopAdminListener) stopAdminListener();
   if (stopPresenceListener) stopPresenceListener();
   if (stopConnectionListener) stopConnectionListener();
+  if (stopChatNotificationsListener) {
+    stopChatNotificationsListener();
+  }
 
   stopUsersListener = null;
   stopMessagesListener = null;
   stopAdminListener = null;
   stopPresenceListener = null;
   stopConnectionListener = null;
+  stopChatNotificationsListener = null;
+
+  for (const stop of notificationMessageListeners.values()) {
+    stop();
+  }
+
+  notificationMessageListeners.clear();
+  latestNotificationMessageIds.clear();
+  markingRead.clear();
 }
 
+// BİLDİRİM SİSTEMİ
+
+// Tarayıcı bildirimi iznini ve ses sistemini hazırla.
+// Bu fonksiyon ilk kullanıcı etkileşiminde çağrılır.
+async function enableNotifications() {
+  if (!notificationPermissionRequested) {
+    notificationPermissionRequested = true;
+
+    if (
+      "Notification" in window &&
+      Notification.permission === "default"
+    ) {
+      try {
+        await Notification.requestPermission();
+      } catch (error) {
+        console.warn("Bildirim izni alınamadı:", error);
+      }
+    }
+  }
+
+  try {
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (AudioContextClass && !notificationAudioContext) {
+      notificationAudioContext = new AudioContextClass();
+    }
+
+    if (notificationAudioContext?.state === "suspended") {
+      await notificationAudioContext.resume();
+    }
+  } catch (error) {
+    console.warn("Bildirim sesi hazırlanamadı:", error);
+  }
+}
+
+// İlk kullanıcı etkileşiminde bildirim iznini iste.
+document.addEventListener("click", () => {
+  if (currentUser) {
+    void enableNotifications();
+  }
+}, { once: false });
+
+// Yeni mesaj geldiğinde kısa bir ses çal.
+function playNotificationSound() {
+  try {
+    const audio = notificationAudioContext;
+
+    if (!audio || audio.state !== "running") return;
+
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+
+    gain.gain.setValueAtTime(0.0001, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+      0.12,
+      audio.currentTime + 0.02
+    );
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      audio.currentTime + 0.2
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+
+    oscillator.start();
+    oscillator.stop(audio.currentTime + 0.22);
+  } catch (error) {
+    console.warn("Bildirim sesi çalınamadı:", error);
+  }
+}
+
+// Yeni mesaj bildirimi göster.
+function showNewMessageNotification(chatId, messageData) {
+  if (!currentUser) return;
+
+  // Kendi mesajımız için bildirim çıkarma.
+  if (messageData.senderId === currentUser.uid) return;
+
+  // Kullanıcı bu sohbeti zaten görüyorsa bildirim çıkarma.
+  if (
+    activeChatId === chatId &&
+    document.visibilityState === "visible"
+  ) {
+    return;
+  }
+
+  const sender = allUsers.find(
+    (person) => person.uid === messageData.senderId
+  );
+
+  const senderName =
+    messageData.senderName ||
+    sender?.username ||
+    "Yeni mesaj";
+
+  // Ses, tarayıcı bildirimi kapalı olsa da çalabilir.
+  playNotificationSound();
+
+  if (
+    !("Notification" in window) ||
+    Notification.permission !== "granted"
+  ) {
+    return;
+  }
+
+  try {
+    const notification = new Notification(
+      `MertChat • ${senderName}`,
+      {
+        body: String(
+          messageData.text || "Sana yeni bir mesaj gönderildi."
+        ).slice(0, 180),
+        tag: `mertchat-${chatId}`
+      }
+    );
+
+    notification.onclick = () => {
+      window.focus();
+
+      const person = allUsers.find(
+        (item) => item.uid === messageData.senderId
+      );
+
+      if (person) {
+        void openChat(person);
+      }
+
+      notification.close();
+    };
+  } catch (error) {
+    console.warn("Bildirim gösterilemedi:", error);
+  }
+}
+
+// Kullanıcının sohbetlerini dinleyip yeni mesajları kontrol et.
+function listenForNewMessageNotifications() {
+  if (!currentUser) return;
+
+  if (stopChatNotificationsListener) {
+    stopChatNotificationsListener();
+    stopChatNotificationsListener = null;
+  }
+
+  for (const stop of notificationMessageListeners.values()) {
+    stop();
+  }
+
+  notificationMessageListeners.clear();
+  latestNotificationMessageIds.clear();
+
+  const chatsQuery = query(
+    collection(db, "chats"),
+    where("participants", "array-contains", currentUser.uid)
+  );
+
+  stopChatNotificationsListener = onSnapshot(
+    chatsQuery,
+    (snapshot) => {
+      if (!currentUser) return;
+
+      const existingChatIds = new Set(
+        snapshot.docs.map((chatDoc) => chatDoc.id)
+      );
+
+      // Artık listede olmayan sohbetlerin dinleyicilerini kapat.
+      for (const [chatId, stop] of notificationMessageListeners) {
+        if (!existingChatIds.has(chatId)) {
+          stop();
+          notificationMessageListeners.delete(chatId);
+          latestNotificationMessageIds.delete(chatId);
+        }
+      }
+
+      for (const chatDoc of snapshot.docs) {
+        const chatId = chatDoc.id;
+
+        // Aynı sohbet için ikinci dinleyici açma.
+        if (notificationMessageListeners.has(chatId)) continue;
+
+        const latestMessageQuery = query(
+          collection(db, "chats", chatId, "messages"),
+          orderBy("createdAt", "desc"),
+          limit(1)
+        );
+
+        let initialSnapshot = true;
+
+        const stop = onSnapshot(
+          latestMessageQuery,
+          (messageSnapshot) => {
+            if (!currentUser || messageSnapshot.empty) return;
+
+            const messageDoc = messageSnapshot.docs[0];
+            const messageData = messageDoc.data();
+
+            // Dinleyici ilk açıldığında eski mesaj için bildirim çıkarma.
+            if (initialSnapshot) {
+              initialSnapshot = false;
+              latestNotificationMessageIds.set(
+                chatId,
+                messageDoc.id
+              );
+              return;
+            }
+
+            const previousId =
+              latestNotificationMessageIds.get(chatId);
+
+            if (previousId === messageDoc.id) return;
+
+            latestNotificationMessageIds.set(
+              chatId,
+              messageDoc.id
+            );
+
+            showNewMessageNotification(chatId, messageData);
+          },
+          (error) => {
+            console.error(
+              "Mesaj bildirimi dinlenemedi:",
+              chatId,
+              error
+            );
+          }
+        );
+
+        notificationMessageListeners.set(chatId, stop);
+      }
+    },
+    (error) => {
+      console.error("Sohbetler dinlenemedi:", error);
+    }
+  );
+}
+
+// Giriş / kayıt ekranı
 showLogin.addEventListener("click", () => setAuthMode("login"));
 showRegister.addEventListener("click", () => setAuthMode("register"));
 
@@ -237,7 +502,9 @@ authForm.addEventListener("submit", async (event) => {
       "permission-denied": "Firebase güvenlik kurallarını kontrol et."
     };
 
-    setAuthMessage(messages[error.code] || error.message || "İşlem başarısız.");
+    setAuthMessage(
+      messages[error.code] || error.message || "İşlem başarısız."
+    );
   } finally {
     authSubmit.disabled = false;
     authSubmit.textContent =
@@ -264,6 +531,7 @@ async function registerUser(username, password) {
   });
 }
 
+// Uygulamaya giriş
 function enterApp(user, profile) {
   currentUser = user;
   currentProfile = profile;
@@ -284,6 +552,9 @@ function enterApp(user, profile) {
   listenForPresence();
   startPresence();
 
+  // Yeni mesaj bildirimlerini dinlemeye başla.
+  listenForNewMessageNotifications();
+
   setDoc(
     doc(db, "users", user.uid),
     { lastSeen: serverTimestamp() },
@@ -291,6 +562,7 @@ function enterApp(user, profile) {
   ).catch(console.error);
 }
 
+// Kullanıcı listesi
 function listenForUsers() {
   if (stopUsersListener) stopUsersListener();
 
@@ -318,6 +590,7 @@ function listenForUsers() {
   );
 }
 
+// Çevrim içi durumları
 function listenForPresence() {
   if (stopPresenceListener) stopPresenceListener();
 
@@ -340,7 +613,11 @@ function startPresence() {
   const myPresenceRef = ref(realtimeDb, `presence/${uid}`);
 
   stopConnectionListener = onValue(connectionRef, async (snapshot) => {
-    if (snapshot.val() !== true || !currentUser || currentUser.uid !== uid) {
+    if (
+      snapshot.val() !== true ||
+      !currentUser ||
+      currentUser.uid !== uid
+    ) {
       return;
     }
 
@@ -356,11 +633,14 @@ function startPresence() {
       });
     } catch (error) {
       console.error("Durum güncellenemedi:", error);
-      showToast("Çevrim içi durumu ayarlanamadı. Firebase kurallarını kontrol et.");
+      showToast(
+        "Çevrim içi durumu ayarlanamadı. Firebase kurallarını kontrol et."
+      );
     }
   });
 }
 
+// Kullanıcı listesini ekrana çiz
 function renderUsers() {
   if (!currentUser) return;
 
@@ -425,6 +705,7 @@ function updateChatStatus() {
   }
 }
 
+// Gelen mesajları okundu olarak işaretle
 async function markIncomingMessagesRead(chatId, messageDocs) {
   if (
     !currentUser ||
@@ -461,6 +742,7 @@ async function markIncomingMessagesRead(chatId, messageDocs) {
   }
 }
 
+// Sohbeti aç
 async function openChat(person) {
   selectedUser = person;
 
@@ -545,7 +827,6 @@ async function openChat(person) {
           time.textContent = formatTime(data.createdAt);
           meta.append(time);
 
-          // Gönderilen mesajlarda iki tik göster.
           if (data.senderId === currentUser.uid) {
             const receipt = document.createElement("span");
             receipt.className = "message-receipt";
@@ -554,7 +835,6 @@ async function openChat(person) {
               Array.isArray(data.readBy) &&
               data.readBy.includes(person.uid);
 
-            // Okunmadı: gri iki tik. Okundu: mavi iki tik.
             receipt.textContent = "✓✓";
             receipt.setAttribute(
               "aria-label",
@@ -587,12 +867,15 @@ async function openChat(person) {
   }
 }
 
+// Mesaj gönder
 messageForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const text = messageInput.value.trim();
 
   if (!text || !selectedUser || !currentUser) return;
+
+  void enableNotifications();
 
   const sendButton = messageForm.querySelector("button");
   sendButton.disabled = true;
@@ -627,6 +910,7 @@ messageForm.addEventListener("submit", async (event) => {
   }
 });
 
+// Sekme tekrar görünür olduğunda okunmamış mesajları işaretle
 document.addEventListener("visibilitychange", () => {
   if (
     document.visibilityState !== "visible" ||
@@ -654,6 +938,7 @@ document.addEventListener("visibilitychange", () => {
     });
 });
 
+// Çıkış yap
 document.querySelector("#logoutButton").addEventListener("click", async () => {
   cleanListenerStops();
 
@@ -664,11 +949,13 @@ document.querySelector("#logoutButton").addEventListener("click", async () => {
   await signOut(auth);
 });
 
+// Sohbet ekranına geri dön
 document.querySelector("#backButton").addEventListener("click", () => {
   document.querySelector("#appScreen").classList.remove("chat-open");
   activeChatId = null;
 });
 
+// Yönetici paneli
 document.querySelector("#adminButton").addEventListener("click", openAdminPanel);
 
 document.querySelector("#closeAdmin").addEventListener("click", () => {
@@ -739,6 +1026,7 @@ function openAdminPanel() {
   );
 }
 
+// Oturum durumunu kontrol et
 onAuthStateChanged(auth, async (user) => {
   cleanListenerStops();
 
@@ -762,7 +1050,9 @@ onAuthStateChanged(auth, async (user) => {
 
     if (!profileSnap.exists()) {
       await signOut(auth);
-      setAuthMessage("Kullanıcı profili bulunamadı. Tekrar kayıt olmayı dene.");
+      setAuthMessage(
+        "Kullanıcı profili bulunamadı. Tekrar kayıt olmayı dene."
+      );
       return;
     }
 
@@ -773,6 +1063,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+// Son görülme zamanını güncelle
 setInterval(() => {
   if (currentUser && document.visibilityState === "visible") {
     setDoc(
