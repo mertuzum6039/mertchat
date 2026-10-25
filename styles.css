@@ -839,3 +839,28 @@ input:focus {
 .message-receipt.read {
   color: #53bdeb;
 }
+.message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #b8b4c7;
+}
+
+.message-receipt {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -3px;
+  padding-right: 3px;
+  color: #b8b4c7;
+  visibility: visible;
+  opacity: 1;
+}
+
+.message-receipt.read {
+  color: #53bdeb;
+}
