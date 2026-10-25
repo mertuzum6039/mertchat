@@ -813,3 +813,29 @@ input:focus {
     animation-duration: .01ms !important;
   }
 }
+/* Mesaj saati ve okundu bilgisi */
+.message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #b8b4c7;
+}
+
+.message-receipt {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  color: #b8b4c7;
+  letter-spacing: -3px;
+  padding-right: 3px;
+  visibility: visible;
+  opacity: 1;
+}
+
+.message-receipt.read {
+  color: #53bdeb;
+}
