@@ -1,22 +1,26 @@
 
+/* =========================================
+   MertChat - Dark Purple & Lilac Theme
+   ========================================= */
+
 :root {
-  --purple: #3867f5;
-  --purple-light: #6689ff;
-  --purple-dark: #244ed0;
-  --purple-glow: rgba(56, 103, 245, .16);
+  --purple: #a78bfa;
+  --purple-light: #d8c7ff;
+  --purple-dark: #7c3aed;
+  --purple-glow: rgba(167, 139, 250, .22);
 
-  --page: #eef2f8;
-  --panel: #ffffff;
-  --panel-soft: #f6f8fc;
-  --panel-hover: #edf2ff;
-  --text: #1e293b;
-  --muted: #78849a;
-  --line: #e4e9f2;
-  --shadow: 0 18px 55px rgba(31, 48, 85, .12);
+  --page: #0b0912;
+  --panel: #13101d;
+  --panel-soft: #1b1628;
+  --panel-hover: #29203b;
+  --text: #f5f0ff;
+  --muted: #a69bbd;
+  --line: #30263f;
+  --shadow: 0 24px 70px rgba(0, 0, 0, .38);
 
-  --green: #3867f5;
-  --green-dark: #244ed0;
-  --green-light: #e5edff;
+  --green: #a78bfa;
+  --green-dark: #7c3aed;
+  --green-light: #302044;
 }
 
 * {
@@ -32,7 +36,10 @@ body {
 }
 
 body {
-  background: #eef2f8;
+  background:
+    radial-gradient(ellipse at 12% 0%, #211432 0%, transparent 40%),
+    radial-gradient(ellipse at 100% 100%, #1a1029 0%, transparent 38%),
+    var(--page);
 }
 
 button,
@@ -66,17 +73,17 @@ input:focus-visible {
   place-items: center;
   padding: 24px;
   background:
-    radial-gradient(ellipse at 15% 0%, #dce7ff 0%, transparent 45%),
-    #f4f7fc;
+    radial-gradient(ellipse at 50% 10%, #302047 0%, transparent 45%),
+    linear-gradient(145deg, #0b0912, #15101f);
 }
 
 .auth-card {
   width: min(100%, 420px);
   padding: 36px;
-  background: #ffffff;
-  border: 1px solid #e4eaf5;
+  background: rgba(22, 17, 32, .96);
+  border: 1px solid #3a2b50;
   border-radius: 24px;
-  box-shadow: 0 24px 70px rgba(41, 68, 125, .12);
+  box-shadow: var(--shadow), 0 0 45px rgba(167, 139, 250, .06);
 }
 
 .brand-mark,
@@ -86,18 +93,18 @@ input:focus-visible {
   width: 60px;
   height: 60px;
   border-radius: 19px;
-  background: linear-gradient(145deg, #6689ff, #315bea);
-  color: white;
+  background: linear-gradient(145deg, #c4a7ff, #8050e8);
+  color: #fff;
   font-size: 30px;
   font-weight: 800;
   margin: 0 auto 15px;
-  box-shadow: 0 8px 24px rgba(56, 103, 245, .22);
+  box-shadow: 0 8px 30px var(--purple-glow);
 }
 
 .auth-card h1 {
   text-align: center;
   margin: 0;
-  color: #2854d7;
+  color: var(--purple-light);
   font-size: 31px;
   letter-spacing: -.8px;
 }
@@ -113,8 +120,8 @@ input:focus-visible {
   grid-template-columns: 1fr 1fr;
   gap: 5px;
   padding: 5px;
-  background: #f1f4fa;
-  border: 1px solid #e6ebf4;
+  background: #100c18;
+  border: 1px solid var(--line);
   border-radius: 12px;
   margin-bottom: 23px;
 }
@@ -123,15 +130,15 @@ input:focus-visible {
   border: 0;
   border-radius: 9px;
   padding: 12px 8px;
-  color: #718096;
+  color: var(--muted);
   background: transparent;
   transition: background .2s, color .2s;
 }
 
 .tab.active {
-  background: #ffffff;
-  color: #2854d7;
-  box-shadow: 0 2px 8px #25385812;
+  background: #332344;
+  color: var(--purple-light);
+  box-shadow: inset 0 0 0 1px #594075;
   font-weight: 700;
 }
 
@@ -141,28 +148,28 @@ label {
   font-weight: 700;
   letter-spacing: .3px;
   margin: 17px 0 8px;
-  color: #475569;
+  color: #d9cdeb;
 }
 
 input {
   width: 100%;
   min-width: 0;
-  border: 1px solid #dce3ef;
+  border: 1px solid #3a3049;
   border-radius: 12px;
   padding: 13px 14px;
   outline: none;
-  background: #f8faff;
-  color: #1e293b;
+  background: #100d17;
+  color: var(--text);
   transition: border-color .2s, box-shadow .2s;
 }
 
 input::placeholder {
-  color: #9aa6b8;
+  color: #786b8d;
 }
 
 input:focus {
-  border-color: #3867f5;
-  box-shadow: 0 0 0 3px rgba(56, 103, 245, .12);
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px var(--purple-glow);
 }
 
 .primary-btn {
@@ -171,15 +178,15 @@ input:focus {
   border: 0;
   border-radius: 12px;
   padding: 14px;
-  color: white;
-  background: linear-gradient(110deg, #6689ff, #315bea);
+  color: #fff;
+  background: linear-gradient(110deg, #ad91ff, #8050e8);
   font-weight: 750;
-  box-shadow: 0 7px 20px rgba(56, 103, 245, .2);
+  box-shadow: 0 7px 24px rgba(124, 58, 237, .23);
   transition: transform .2s, filter .2s;
 }
 
 .primary-btn:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.12);
   transform: translateY(-1px);
 }
 
@@ -194,13 +201,13 @@ input:focus {
   min-height: 20px;
   font-size: 13px;
   line-height: 1.5;
-  color: #dc4264;
+  color: #ff9ab9;
 }
 
 .tiny-note {
   font-size: 11px;
   line-height: 1.6;
-  color: #8b96a9;
+  color: #8e819f;
   margin: 15px 0 0;
 }
 
@@ -213,9 +220,9 @@ input:focus {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 330px minmax(0, 1fr);
-  background: #ffffff;
-  border-left: 1px solid #e0e7f1;
-  border-right: 1px solid #e0e7f1;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -224,14 +231,14 @@ input:focus {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: #ffffff;
+  background: #120f1a;
   border-right: 1px solid var(--line);
 }
 
 .sidebar-header {
   height: 72px;
   flex-shrink: 0;
-  background: #ffffff;
+  background: #171220;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -243,7 +250,7 @@ input:focus {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #2854d7;
+  color: var(--purple-light);
   font-size: 19px;
   letter-spacing: -.4px;
 }
@@ -255,9 +262,9 @@ input:focus {
   height: 36px;
   border-radius: 12px;
   color: white;
-  background: linear-gradient(145deg, #6689ff, #315bea);
+  background: linear-gradient(145deg, #c4a7ff, #8050e8);
   font-weight: 850;
-  box-shadow: 0 4px 12px rgba(56, 103, 245, .18);
+  box-shadow: 0 0 22px rgba(167, 139, 250, .17);
 }
 
 .header-actions {
@@ -271,15 +278,15 @@ input:focus {
   border: 1px solid transparent;
   border-radius: 11px;
   background: transparent;
-  color: #64748b;
+  color: #b7a9ca;
   font-size: 22px;
   transition: .2s;
 }
 
 .icon-btn:hover {
-  background: #edf2ff;
-  border-color: #dbe5ff;
-  color: #2854d7;
+  background: #2b213b;
+  border-color: #443256;
+  color: var(--purple-light);
 }
 
 .current-user {
@@ -288,7 +295,7 @@ input:focus {
   gap: 11px;
   padding: 16px 17px;
   border-bottom: 1px solid var(--line);
-  background: #f9fbff;
+  background: #191422;
 }
 
 .avatar {
@@ -297,13 +304,14 @@ input:focus {
   place-items: center;
   width: 43px;
   height: 43px;
-  border: 1px solid #d6e0ff;
-  border-radius: 50%;
-  color: #2854d7;
-  background: linear-gradient(145deg, #e4ebff, #cddaff);
+  border: 1px solid #654b85;
+  border-radius: 14px;
+  color: #f5eaff;
+  background: linear-gradient(145deg, #614783, #35253f);
   font-size: 17px;
   font-weight: 750;
   text-transform: uppercase;
+  box-shadow: inset 0 1px 0 #ffffff12;
 }
 
 .current-user-text,
@@ -328,20 +336,22 @@ input:focus {
   color: var(--muted);
 }
 
+/* Arama */
+
 .search-wrap {
   padding: 13px;
-  background: #ffffff;
+  background: #120f1a;
 }
 
 .search-wrap input {
-  border: 1px solid #e2e8f2;
-  border-radius: 13px;
-  background: #f5f7fb;
+  border: 1px solid #33283f;
+  border-radius: 12px;
+  background: #1b1626;
   padding: 12px 14px;
 }
 
 .search-wrap input:focus {
-  border-color: #3867f5;
+  border-color: var(--purple);
 }
 
 .list-heading {
@@ -349,31 +359,33 @@ input:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #78849a;
+  color: #aaa0bc;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .12em;
 }
 
 .list-heading span {
-  background: #e9efff;
-  color: #315bea;
-  border: 1px solid #dbe5ff;
+  background: #30213f;
+  color: var(--purple-light);
+  border: 1px solid #49345e;
   border-radius: 8px;
   padding: 3px 8px;
 }
+
+/* Kullanıcı listesi */
 
 .users-list {
   flex: 1;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #c7d2e4 transparent;
+  scrollbar-color: #514061 transparent;
 }
 
 .user-item {
   width: 100%;
   border: 0;
-  border-top: 1px solid #f0f3f8;
+  border-top: 1px solid #241d30;
   padding: 13px 16px;
   display: flex;
   align-items: center;
@@ -386,11 +398,11 @@ input:focus {
 
 .user-item:hover,
 .user-item.selected {
-  background: #edf2ff;
+  background: #261d35;
 }
 
 .user-item.selected {
-  box-shadow: inset 3px 0 #3867f5;
+  box-shadow: inset 3px 0 var(--purple);
 }
 
 .user-details {
@@ -417,10 +429,10 @@ input:focus {
 .online-dot {
   width: 8px;
   height: 8px;
-  background: #22c55e;
+  background: #a78bfa;
   border-radius: 50%;
   margin-left: auto;
-  box-shadow: 0 0 8px rgba(34, 197, 94, .25);
+  box-shadow: 0 0 10px rgba(167, 139, 250, .55);
 }
 
 .empty-list {
@@ -434,8 +446,8 @@ input:focus {
   padding: 13px 10px;
   text-align: center;
   border-top: 1px solid var(--line);
-  background: #f9fbff;
-  color: #8995a8;
+  background: #100d17;
+  color: #80748f;
   font-size: 11px;
   letter-spacing: .3px;
 }
@@ -446,7 +458,7 @@ input:focus {
   position: relative;
   min-width: 0;
   min-height: 0;
-  background: #f4f7fc;
+  background: #0e0b15;
 }
 
 .welcome-panel {
@@ -458,8 +470,8 @@ input:focus {
   text-align: center;
   padding: 28px;
   background:
-    radial-gradient(ellipse at 50% 38%, #e1e9ff 0%, transparent 48%),
-    #f5f8fd;
+    radial-gradient(ellipse at 50% 38%, #281b3b 0%, transparent 43%),
+    linear-gradient(145deg, #15101f, #0d0b14);
 }
 
 .welcome-logo {
@@ -473,7 +485,6 @@ input:focus {
   font-size: 26px;
   letter-spacing: -.6px;
   margin: 13px 0 8px;
-  color: #1e293b;
 }
 
 .welcome-panel p {
@@ -486,7 +497,7 @@ input:focus {
 .welcome-panel .privacy-note {
   font-size: 12px;
   margin-top: 20px;
-  color: #8b96a9;
+  color: #897b9b;
 }
 
 .conversation {
@@ -494,7 +505,7 @@ input:focus {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #f1f5fb;
+  background: #0e0b15;
 }
 
 .chat-header {
@@ -504,7 +515,7 @@ input:focus {
   gap: 12px;
   flex-shrink: 0;
   padding: 0 20px;
-  background: #ffffff;
+  background: #171220;
   border-bottom: 1px solid var(--line);
 }
 
@@ -518,6 +529,8 @@ input:focus {
   height: 42px;
 }
 
+/* Mesajların bulunduğu alan */
+
 .messages {
   flex: 1;
   min-height: 0;
@@ -525,58 +538,61 @@ input:focus {
   padding: 24px clamp(12px, 4vw, 48px);
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  background-color: #f1f5fb;
-  background-image: radial-gradient(
-    circle,
-    rgba(80, 105, 150, .07) 1px,
-    transparent 1.5px
-  );
-  background-size: 25px 25px;
+  gap: 12px;
+  background-color: #0e0b15;
+  background-image:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(167, 139, 250, .055) 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      rgba(167, 139, 250, .04) 1px,
+      transparent 1.5px
+    );
+  background-size: 27px 27px, 35px 35px;
   scrollbar-width: thin;
-  scrollbar-color: #c7d2e4 transparent;
+  scrollbar-color: #514061 transparent;
 }
 
 .message-placeholder {
   align-self: center;
-  color: #64748b;
+  color: #b7a8cc;
   text-align: center;
   padding: 12px 18px;
   margin-top: 20px;
-  border: 1px solid #e0e7f1;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid #3a2b4b;
+  border-radius: 12px;
+  background: #1b1526;
   font-size: 13px;
 }
+
+/* Mesaj balonları */
 
 .message {
   max-width: min(78%, 620px);
   padding: 11px 14px 8px;
-  border: 1px solid #e0e7f1;
-  border-radius: 16px 16px 16px 5px;
-  background: #ffffff;
-  box-shadow: 0 3px 10px rgba(31, 48, 85, .045);
+  border: 1px solid #382b49;
+  border-radius: 15px 15px 15px 5px;
+  background: #211a2d;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, .12);
   overflow-wrap: anywhere;
-  color: #1e293b;
+  color: var(--text);
 }
 
 .message.mine {
   align-self: flex-end;
-  border-color: #3867f5;
-  border-radius: 16px 16px 5px 16px;
-  background: #3867f5;
-  color: #ffffff;
+  border-color: #7652bd;
+  border-radius: 15px 15px 5px 15px;
+  background: linear-gradient(145deg, #563b7d, #41295f);
 }
 
 .message .message-author {
   font-size: 11px;
-  color: #3867f5;
+  color: var(--purple-light);
   font-weight: 750;
   margin-bottom: 6px;
-}
-
-.message.mine .message-author {
-  color: #dce6ff;
 }
 
 .message .message-text {
@@ -589,15 +605,12 @@ input:focus {
   display: block;
   text-align: right;
   font-size: 10px;
-  color: #8793a7;
+  color: #b0a2c2;
   margin-top: 7px;
 }
 
-.message.mine time {
-  color: #dce6ff;
-}
+/* Mesaj saati ve okundu bilgisi */
 
-/* Saat ve okundu bilgisi */
 .message-meta {
   display: flex;
   align-items: center;
@@ -605,11 +618,7 @@ input:focus {
   gap: 5px;
   margin-top: 5px;
   font-size: 10px;
-  color: #8793a7;
-}
-
-.message.mine .message-meta {
-  color: #dce6ff;
+  color: #b0a2c2;
 }
 
 .message-receipt {
@@ -617,53 +626,56 @@ input:focus {
   font-size: 14px;
   font-weight: 700;
   line-height: 1;
-  color: #8793a7;
+  color: #b0a2c2;
   letter-spacing: -3px;
   padding-right: 3px;
+  visibility: visible;
+  opacity: 1;
 }
 
 .message-receipt.read {
-  color: #a5f3fc;
+  color: #67e8f9;
 }
 
 /* Mesaj yazma alanı */
+
 .message-form {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 13px 18px;
-  background: #ffffff;
+  background: #171220;
   border-top: 1px solid var(--line);
   flex-shrink: 0;
 }
 
 .message-form input {
-  border: 1px solid #e0e7f1;
-  border-radius: 25px;
-  padding: 14px 18px;
-  background: #f5f7fb;
-  color: #1e293b;
+  border: 1px solid #3a3049;
+  border-radius: 15px;
+  padding: 14px 17px;
+  background: #100d17;
+  color: var(--text);
 }
 
 .message-form input:focus {
-  border-color: #3867f5;
+  border-color: var(--purple);
 }
 
 .send-btn {
   flex-shrink: 0;
   border: 0;
-  border-radius: 15px;
+  border-radius: 14px;
   width: 47px;
   height: 47px;
-  background: linear-gradient(145deg, #6689ff, #315bea);
+  background: linear-gradient(145deg, #c4a7ff, #8050e8);
   color: white;
   font-size: 20px;
-  box-shadow: 0 4px 13px rgba(56, 103, 245, .2);
+  box-shadow: 0 5px 18px rgba(124, 58, 237, .24);
   transition: filter .2s, transform .2s;
 }
 
 .send-btn:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.12);
   transform: translateY(-1px);
 }
 
@@ -672,7 +684,7 @@ input:focus {
 .admin-panel {
   position: absolute;
   inset: 0;
-  background: #ffffff;
+  background: #14101d;
   display: flex;
   flex-direction: column;
 }
@@ -684,7 +696,7 @@ input:focus {
 
 .admin-content h2 {
   margin-top: 0;
-  color: #2854d7;
+  color: var(--purple-light);
 }
 
 .admin-content .muted {
@@ -708,7 +720,8 @@ input:focus {
   color: var(--muted);
 }
 
-/* Bildirim */
+/* Bildirimler */
+
 .toast {
   position: fixed;
   bottom: 20px;
@@ -716,9 +729,9 @@ input:focus {
   transform: translate(-50%, 20px);
   opacity: 0;
   pointer-events: none;
-  background: #ffffff;
-  color: #1e293b;
-  border: 1px solid #dce3ef;
+  background: #292039;
+  color: #f7f0ff;
+  border: 1px solid #594273;
   box-shadow: var(--shadow);
   padding: 12px 18px;
   border-radius: 12px;
@@ -733,12 +746,15 @@ input:focus {
   transform: translate(-50%, 0);
 }
 
+/* Kaydırma çubukları */
+
 * {
   scrollbar-width: thin;
-  scrollbar-color: #c7d2e4 #f1f5fb;
+  scrollbar-color: #514061 #171220;
 }
 
 /* Tablet ve telefon */
+
 @media (max-width: 760px) {
   .app-screen {
     display: block;
