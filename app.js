@@ -36,7 +36,6 @@ import {
   onDisconnect
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
-// Firebase ayarları
 const firebaseConfig = {
   apiKey: "AIzaSyBLT1Qu-oTpacg3pwI2k-MOfVbazAi9Z3Y",
   authDomain: "mertchat-53652.firebaseapp.com",
@@ -48,16 +47,13 @@ const firebaseConfig = {
   measurementId: "G-HX67K1WJZ6"
 };
 
-// Yönetici UID'si
 const ADMIN_UID = "qpi0ozUZ8QRSzKyM92OAaTy8Mhc2";
 
-// Firebase bağlantıları
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const realtimeDb = getDatabase(app);
 
-// Sayfa elemanları
 const authScreen = document.querySelector("#authScreen");
 const appScreen = document.querySelector("#appScreen");
 const authForm = document.querySelector("#authForm");
@@ -91,7 +87,6 @@ let toastTimer;
 let activeChatId = null;
 let markingRead = new Set();
 
-// Bildirim
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
@@ -102,28 +97,23 @@ function showToast(message) {
   }, 3200);
 }
 
-// Giriş ekranındaki mesaj
 function setAuthMessage(message, error = true) {
   authMessage.textContent = message;
   authMessage.style.color = error ? "#b42318" : "#087443";
 }
 
-// Kullanıcı adı kontrolü
 function safeUsername(value) {
   return /^[a-zA-Z0-9_]{3,20}$/.test(value);
 }
 
-// Kullanıcı adını Firebase e-posta biçimine dönüştürür
 function usernameEmail(username) {
   return `${username.toLowerCase()}@users.mertchat.invalid`;
 }
 
-// Avatar harfi
 function avatarLetter(name) {
   return (name || "?").trim().charAt(0).toUpperCase();
 }
 
-// Mesaj saati
 function formatTime(timestamp) {
   if (!timestamp?.toDate) return "";
 
@@ -133,7 +123,6 @@ function formatTime(timestamp) {
   });
 }
 
-// Son görülme zamanı
 function formatLastSeen(timestamp) {
   if (!timestamp?.toDate) return "Son görülme bilgisi yok";
 
@@ -146,7 +135,6 @@ function formatLastSeen(timestamp) {
     });
 }
 
-// Kullanıcı durumunu gösterir
 function formatPresence(person) {
   const status = presenceData[person.uid];
 
@@ -171,12 +159,10 @@ function formatPresence(person) {
   return formatLastSeen(person.lastSeen);
 }
 
-// Sohbet kimliği
 function makeChatId(uidA, uidB) {
   return [uidA, uidB].sort().join("_");
 }
 
-// Açık dinleyicileri kapatır
 function cleanListenerStops() {
   if (stopUsersListener) stopUsersListener();
   if (stopMessagesListener) stopMessagesListener();
@@ -191,7 +177,6 @@ function cleanListenerStops() {
   stopConnectionListener = null;
 }
 
-// Giriş ve kayıt sekmeleri
 showLogin.addEventListener("click", () => setAuthMode("login"));
 showRegister.addEventListener("click", () => setAuthMode("register"));
 
@@ -210,7 +195,6 @@ function setAuthMode(mode) {
   setAuthMessage("");
 }
 
-// Kayıt ve giriş işlemleri
 authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -261,7 +245,6 @@ authForm.addEventListener("submit", async (event) => {
   }
 });
 
-// Yeni kullanıcı oluşturur
 async function registerUser(username, password) {
   const credential = await createUserWithEmailAndPassword(
     auth,
@@ -281,7 +264,6 @@ async function registerUser(username, password) {
   });
 }
 
-// Uygulamaya giriş
 function enterApp(user, profile) {
   currentUser = user;
   currentProfile = profile;
@@ -309,7 +291,6 @@ function enterApp(user, profile) {
   ).catch(console.error);
 }
 
-// Kullanıcıları canlı olarak dinler
 function listenForUsers() {
   if (stopUsersListener) stopUsersListener();
 
@@ -337,7 +318,6 @@ function listenForUsers() {
   );
 }
 
-// Çevrim içi durumlarını canlı dinler
 function listenForPresence() {
   if (stopPresenceListener) stopPresenceListener();
 
@@ -354,7 +334,6 @@ function listenForPresence() {
   );
 }
 
-// Kullanıcının çevrim içi durumunu ayarlar
 function startPresence() {
   const uid = currentUser.uid;
   const connectionRef = ref(realtimeDb, ".info/connected");
@@ -382,7 +361,6 @@ function startPresence() {
   });
 }
 
-// Kullanıcı listesini oluşturur
 function renderUsers() {
   if (!currentUser) return;
 
@@ -409,7 +387,6 @@ function renderUsers() {
   for (const person of filtered) {
     const button = document.createElement("button");
     button.type = "button";
-
     button.className =
       "user-item" +
       (selectedUser?.uid === person.uid ? " selected" : "");
@@ -438,7 +415,6 @@ function renderUsers() {
 
 userSearch.addEventListener("input", renderUsers);
 
-// Sohbet başlığındaki durumu günceller
 function updateChatStatus() {
   if (!selectedUser) return;
 
@@ -449,7 +425,6 @@ function updateChatStatus() {
   }
 }
 
-// Gelen mesajları okundu olarak işaretler
 async function markIncomingMessagesRead(chatId, messageDocs) {
   if (
     !currentUser ||
@@ -459,18 +434,18 @@ async function markIncomingMessagesRead(chatId, messageDocs) {
     return;
   }
 
-  const unread = messageDocs.filter((messageDoc) => {
+  for (const messageDoc of messageDocs) {
     const data = messageDoc.data();
 
-    return (
-      data.senderId !== currentUser.uid &&
-      !(Array.isArray(data.readBy) &&
-        data.readBy.includes(currentUser.uid)) &&
-      !markingRead.has(messageDoc.id)
-    );
-  });
+    if (
+      data.senderId === currentUser.uid ||
+      (Array.isArray(data.readBy) &&
+        data.readBy.includes(currentUser.uid)) ||
+      markingRead.has(messageDoc.id)
+    ) {
+      continue;
+    }
 
-  for (const messageDoc of unread) {
     markingRead.add(messageDoc.id);
 
     try {
@@ -486,7 +461,6 @@ async function markIncomingMessagesRead(chatId, messageDocs) {
   }
 }
 
-// Sohbeti açar
 async function openChat(person) {
   selectedUser = person;
 
@@ -571,7 +545,7 @@ async function openChat(person) {
           time.textContent = formatTime(data.createdAt);
           meta.append(time);
 
-          // Kendi mesajlarında gönderildi/okundu işareti göster.
+          // Gönderilen mesajlarda iki tik göster.
           if (data.senderId === currentUser.uid) {
             const receipt = document.createElement("span");
             receipt.className = "message-receipt";
@@ -580,14 +554,19 @@ async function openChat(person) {
               Array.isArray(data.readBy) &&
               data.readBy.includes(person.uid);
 
-            receipt.textContent = isRead ? "✓✓" : "✓";
+            // Okunmadı: gri iki tik. Okundu: mavi iki tik.
+            receipt.textContent = "✓✓";
             receipt.setAttribute(
               "aria-label",
-              isRead ? "Okundu" : "Gönderildi"
+              isRead ? "Okundu" : "Gönderildi, henüz okunmadı"
             );
-            receipt.title = isRead ? "Okundu" : "Gönderildi";
+            receipt.title = isRead
+              ? "Okundu"
+              : "Gönderildi, henüz okunmadı";
 
-            if (isRead) receipt.classList.add("read");
+            if (isRead) {
+              receipt.classList.add("read");
+            }
 
             meta.append(receipt);
           }
@@ -608,7 +587,6 @@ async function openChat(person) {
   }
 }
 
-// Mesaj gönderme
 messageForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -649,7 +627,6 @@ messageForm.addEventListener("submit", async (event) => {
   }
 });
 
-// Sayfa tekrar görünür olunca gelen mesajları okundu işaretle
 document.addEventListener("visibilitychange", () => {
   if (
     document.visibilityState !== "visible" ||
@@ -677,7 +654,6 @@ document.addEventListener("visibilitychange", () => {
     });
 });
 
-// Çıkış
 document.querySelector("#logoutButton").addEventListener("click", async () => {
   cleanListenerStops();
 
@@ -688,13 +664,11 @@ document.querySelector("#logoutButton").addEventListener("click", async () => {
   await signOut(auth);
 });
 
-// Sohbetten geri dön
 document.querySelector("#backButton").addEventListener("click", () => {
   document.querySelector("#appScreen").classList.remove("chat-open");
   activeChatId = null;
 });
 
-// Yönetici paneli
 document.querySelector("#adminButton").addEventListener("click", openAdminPanel);
 
 document.querySelector("#closeAdmin").addEventListener("click", () => {
@@ -765,7 +739,6 @@ function openAdminPanel() {
   );
 }
 
-// Oturum kontrolü
 onAuthStateChanged(auth, async (user) => {
   cleanListenerStops();
 
@@ -800,7 +773,6 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// Son görülme bilgisini düzenli güncelle
 setInterval(() => {
   if (currentUser && document.visibilityState === "visible") {
     setDoc(
