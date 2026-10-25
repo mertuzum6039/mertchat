@@ -864,3 +864,261 @@ input:focus {
 .message-receipt.read {
   color: #53bdeb;
 }
+
+/* MertChat - Modern sohbet tasarimi */
+
+:root {
+  --page: #0b1020;
+  --panel: #111827;
+  --panel-soft: #182235;
+  --panel-hover: #202d43;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --line: #263449;
+
+  --purple: #8b7cff;
+  --purple-light: #c4baff;
+  --purple-dark: #6d5dfc;
+  --purple-glow: rgba(139, 124, 255, .2);
+
+  --green: #8b7cff;
+  --green-dark: #6d5dfc;
+  --green-light: #252344;
+
+  --shadow: 0 20px 60px rgba(0, 0, 0, .3);
+}
+
+/* Ana ekran */
+.app-screen {
+  border-color: #263449;
+  background: #111827;
+}
+
+.sidebar {
+  background: #0f1726;
+  border-right-color: #263449;
+}
+
+.sidebar-header,
+.chat-header {
+  background: rgba(17, 24, 39, .97);
+  border-bottom-color: #263449;
+}
+
+.brand-inline {
+  color: #c4baff;
+}
+
+.brand-small {
+  border-radius: 12px;
+  background: linear-gradient(145deg, #a99cff, #6555ed);
+  box-shadow: 0 5px 18px rgba(109, 93, 252, .25);
+}
+
+/* Kullanıcı arama kutusu */
+.search-wrap {
+  background: #0f1726;
+}
+
+.search-wrap input {
+  background: #182235;
+  border-color: #2b3a51;
+  border-radius: 14px;
+}
+
+.search-wrap input:focus {
+  border-color: #8b7cff;
+  box-shadow: 0 0 0 3px rgba(139, 124, 255, .13);
+}
+
+/* Kullanıcı listesi */
+.user-item {
+  padding: 15px 16px;
+  border-top-color: #202c40;
+  transition: background .2s, box-shadow .2s;
+}
+
+.user-item:hover {
+  background: #182235;
+}
+
+.user-item.selected {
+  background: #202344;
+  box-shadow: inset 3px 0 #8b7cff;
+}
+
+.avatar {
+  border: 1px solid #6257ad;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #5549a8, #292b50);
+  box-shadow: none;
+}
+
+.online-dot {
+  background: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, .35);
+}
+
+/* Sohbet başlığı */
+.chat-header {
+  min-height: 78px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.chat-header .avatar {
+  border-radius: 50%;
+}
+
+.chat-person strong {
+  font-size: 15px;
+  letter-spacing: .1px;
+}
+
+/* Mesaj alanı */
+.messages {
+  gap: 13px;
+  padding-top: 26px;
+  padding-bottom: 26px;
+  background-color: #0b1220;
+  background-image:
+    radial-gradient(
+      circle,
+      rgba(148, 163, 184, .08) 1px,
+      transparent 1.5px
+    );
+  background-size: 24px 24px;
+}
+
+.message {
+  max-width: min(75%, 600px);
+  padding: 12px 15px 9px;
+  border: 1px solid #2b3a51;
+  border-radius: 17px 17px 17px 5px;
+  background: #182235;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+}
+
+.message.mine {
+  border-color: #6257b9;
+  border-radius: 17px 17px 5px 17px;
+  background: linear-gradient(145deg, #4840a0, #373477);
+}
+
+.message .message-author {
+  color: #c4baff;
+  font-size: 11px;
+  letter-spacing: .2px;
+}
+
+.message .message-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #f1f5f9;
+}
+
+.message time,
+.message-meta {
+  color: #b6bfd2;
+  font-size: 10px;
+}
+
+.message-receipt.read {
+  color: #67e8f9;
+}
+
+/* Mesaj yazma alanı */
+.message-form {
+  gap: 12px;
+  padding: 15px 20px;
+  background: #111827;
+  border-top-color: #263449;
+}
+
+.message-form input {
+  min-height: 49px;
+  padding: 14px 18px;
+  border: 1px solid #334155;
+  border-radius: 25px;
+  background: #1a2538;
+}
+
+.message-form input:focus {
+  border-color: #8b7cff;
+  box-shadow: 0 0 0 3px rgba(139, 124, 255, .12);
+}
+
+.send-btn {
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #a99cff, #6555ed);
+  box-shadow: 0 5px 16px rgba(109, 93, 252, .25);
+}
+
+.send-btn:hover {
+  transform: scale(1.05);
+}
+
+/* İlk açılış ekranı */
+.welcome-panel {
+  background:
+    radial-gradient(
+      ellipse at 50% 40%,
+      rgba(109, 93, 252, .12),
+      transparent 48%
+    ),
+    #0b1220;
+}
+
+.welcome-logo {
+  background: linear-gradient(145deg, #a99cff, #6555ed);
+  box-shadow: 0 8px 30px rgba(109, 93, 252, .22);
+}
+
+/* Yönetici paneli */
+.admin-panel {
+  background: #111827;
+}
+
+.admin-content h2 {
+  color: #c4baff;
+}
+
+.admin-user-row {
+  border-bottom-color: #263449;
+}
+
+/* Telefon görünümü */
+@media (max-width: 760px) {
+  .chat-header {
+    min-height: 68px;
+    padding-left: 10px;
+    padding-right: 12px;
+  }
+
+  .messages {
+    padding: 16px 11px;
+    gap: 11px;
+  }
+
+  .message {
+    max-width: 88%;
+  }
+
+  .message-form {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .message-form input {
+    min-height: 45px;
+    padding: 12px 15px;
+  }
+
+  .send-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
