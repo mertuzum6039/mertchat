@@ -201,27 +201,18 @@ function cleanListenerStops() {
   markingRead.clear();
 }
 
-// BİLDİRİM SİSTEMİ
 
-// Tarayıcı bildirimi iznini ve ses sistemini hazırla.
-// Bu fonksiyon ilk kullanıcı etkileşiminde çağrılır.
+/* ========== BİLDİRİM SİSTEMİ ========== */
+
 async function enableNotifications() {
-  if (!notificationPermissionRequested) {
-    notificationPermissionRequested = true;
-
+  try {
     if (
       "Notification" in window &&
       Notification.permission === "default"
     ) {
-      try {
-        await Notification.requestPermission();
-      } catch (error) {
-        console.warn("Bildirim izni alınamadı:", error);
-      }
+      await Notification.requestPermission();
     }
-  }
 
-  try {
     const AudioContextClass =
       window.AudioContext || window.webkitAudioContext;
 
@@ -233,83 +224,80 @@ async function enableNotifications() {
       await notificationAudioContext.resume();
     }
   } catch (error) {
-    console.warn("Bildirim sesi hazırlanamadı:", error);
+    console.error("Bildirim hazırlama hatası:", error);
   }
 }
 
-// İlk kullanıcı etkileşiminde bildirim iznini iste.
+// Kullanıcı tıklaması ses sistemini başlatmaya yardımcı olur.
 document.addEventListener("click", () => {
-  if (currentUser) {
-    void enableNotifications();
-  }
-}, { once: false });
+  if (currentUser) void enableNotifications();
+});
 
-// Yeni mesaj geldiğinde kısa bir ses çal.
 function playNotificationSound() {
   try {
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) return;
+
+    if (!notificationAudioContext) {
+      notificationAudioContext = new AudioContextClass();
+    }
+
+    if (notificationAudioContext.state !== "running") {
+      console.warn("Ses sistemi çalışmıyor; sayfaya tıklayıp tekrar dene.");
+      return;
+    }
+
     const audio = notificationAudioContext;
-
-    if (!audio || audio.state !== "running") return;
-
     const oscillator = audio.createOscillator();
     const gain = audio.createGain();
 
     oscillator.type = "sine";
-    oscillator.frequency.value = 880;
+    oscillator.frequency.setValueAtTime(880, audio.currentTime);
 
     gain.gain.setValueAtTime(0.0001, audio.currentTime);
     gain.gain.exponentialRampToValueAtTime(
-      0.12,
-      audio.currentTime + 0.02
+      0.14,
+      audio.currentTime + 0.025
     );
     gain.gain.exponentialRampToValueAtTime(
       0.0001,
-      audio.currentTime + 0.2
+      audio.currentTime + 0.28
     );
 
     oscillator.connect(gain);
     gain.connect(audio.destination);
 
     oscillator.start();
-    oscillator.stop(audio.currentTime + 0.22);
+    oscillator.stop(audio.currentTime + 0.3);
   } catch (error) {
-    console.warn("Bildirim sesi çalınamadı:", error);
+    console.error("Bildirim sesi çalınamadı:", error);
   }
 }
 
-// Yeni mesaj bildirimi göster.
 function showNewMessageNotification(chatId, messageData) {
-  if (!currentUser) return;
+  if (!currentUser || messageData.senderId === currentUser.uid) return;
 
-  // Kendi mesajımız için bildirim çıkarma.
-  if (messageData.senderId === currentUser.uid) return;
+  // Sohbet açık olsa bile yeni mesajda ses çalmayı dene.
+  playNotificationSound();
 
-  // Kullanıcı bu sohbeti zaten görüyorsa bildirim çıkarma.
-  if (
-    activeChatId === chatId &&
-    document.visibilityState === "visible"
-  ) {
+  if (!("Notification" in window)) {
+    console.warn("Tarayıcı bildirim API'sini desteklemiyor.");
+    return;
+  }
+
+  if (Notification.permission !== "granted") {
+    console.warn("Bildirim izni:", Notification.permission);
     return;
   }
 
   const sender = allUsers.find(
-    (person) => person.uid === messageData.senderId
+    person => person.uid === messageData.senderId
   );
 
   const senderName =
-    messageData.senderName ||
-    sender?.username ||
-    "Yeni mesaj";
-
-  // Ses, tarayıcı bildirimi kapalı olsa da çalabilir.
-  playNotificationSound();
-
-  if (
-    !("Notification" in window) ||
-    Notification.permission !== "granted"
-  ) {
-    return;
-  }
+    messageData.senderName || sender?.username || "Yeni mesaj";
 
   try {
     const notification = new Notification(
@@ -318,7 +306,8 @@ function showNewMessageNotification(chatId, messageData) {
         body: String(
           messageData.text || "Sana yeni bir mesaj gönderildi."
         ).slice(0, 180),
-        tag: `mertchat-${chatId}`
+        tag: `mertchat-${chatId}`,
+        renotify: true
       }
     );
 
@@ -326,21 +315,17 @@ function showNewMessageNotification(chatId, messageData) {
       window.focus();
 
       const person = allUsers.find(
-        (item) => item.uid === messageData.senderId
+        item => item.uid === messageData.senderId
       );
 
-      if (person) {
-        void openChat(person);
-      }
-
+      if (person) void openChat(person);
       notification.close();
     };
   } catch (error) {
-    console.warn("Bildirim gösterilemedi:", error);
+    console.error("Tarayıcı bildirimi gösterilemedi:", error);
   }
 }
 
-// Kullanıcının sohbetlerini dinleyip yeni mesajları kontrol et.
 function listenForNewMessageNotifications() {
   if (!currentUser) return;
 
@@ -356,21 +341,22 @@ function listenForNewMessageNotifications() {
   notificationMessageListeners.clear();
   latestNotificationMessageIds.clear();
 
+  const uidAtStart = currentUser.uid;
+
   const chatsQuery = query(
     collection(db, "chats"),
-    where("participants", "array-contains", currentUser.uid)
+    where("participants", "array-contains", uidAtStart)
   );
 
   stopChatNotificationsListener = onSnapshot(
     chatsQuery,
-    (snapshot) => {
-      if (!currentUser) return;
+    snapshot => {
+      if (!currentUser || currentUser.uid !== uidAtStart) return;
 
       const existingChatIds = new Set(
-        snapshot.docs.map((chatDoc) => chatDoc.id)
+        snapshot.docs.map(chatDoc => chatDoc.id)
       );
 
-      // Artık listede olmayan sohbetlerin dinleyicilerini kapat.
       for (const [chatId, stop] of notificationMessageListeners) {
         if (!existingChatIds.has(chatId)) {
           stop();
@@ -382,7 +368,6 @@ function listenForNewMessageNotifications() {
       for (const chatDoc of snapshot.docs) {
         const chatId = chatDoc.id;
 
-        // Aynı sohbet için ikinci dinleyici açma.
         if (notificationMessageListeners.has(chatId)) continue;
 
         const latestMessageQuery = query(
@@ -395,19 +380,17 @@ function listenForNewMessageNotifications() {
 
         const stop = onSnapshot(
           latestMessageQuery,
-          (messageSnapshot) => {
-            if (!currentUser || messageSnapshot.empty) return;
+          messageSnapshot => {
+            if (!currentUser || currentUser.uid !== uidAtStart) return;
+            if (messageSnapshot.empty) return;
 
             const messageDoc = messageSnapshot.docs[0];
             const messageData = messageDoc.data();
 
-            // Dinleyici ilk açıldığında eski mesaj için bildirim çıkarma.
+            // İlk açılışta eski mesajları yeni bildirim gibi gösterme.
             if (initialSnapshot) {
               initialSnapshot = false;
-              latestNotificationMessageIds.set(
-                chatId,
-                messageDoc.id
-              );
+              latestNotificationMessageIds.set(chatId, messageDoc.id);
               return;
             }
 
@@ -416,14 +399,10 @@ function listenForNewMessageNotifications() {
 
             if (previousId === messageDoc.id) return;
 
-            latestNotificationMessageIds.set(
-              chatId,
-              messageDoc.id
-            );
-
+            latestNotificationMessageIds.set(chatId, messageDoc.id);
             showNewMessageNotification(chatId, messageData);
           },
-          (error) => {
+          error => {
             console.error(
               "Mesaj bildirimi dinlenemedi:",
               chatId,
@@ -435,11 +414,12 @@ function listenForNewMessageNotifications() {
         notificationMessageListeners.set(chatId, stop);
       }
     },
-    (error) => {
-      console.error("Sohbetler dinlenemedi:", error);
+    error => {
+      console.error("Sohbet bildirimleri dinlenemedi:", error);
     }
   );
 }
+
 
 // Giriş / kayıt ekranı
 showLogin.addEventListener("click", () => setAuthMode("login"));
