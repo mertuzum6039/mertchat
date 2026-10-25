@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 
 import {
@@ -21,7 +20,12 @@ import {
   limit,
   onSnapshot,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  where,
+  getDocs,
+  runTransaction,
+  updateDoc,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 import {
@@ -84,6 +88,8 @@ let stopPresenceListener = null;
 let stopConnectionListener = null;
 
 let toastTimer;
+let activeChatId = null;
+let markingRead = new Set();
 
 // Bildirim
 function showToast(message) {
@@ -443,6 +449,43 @@ function updateChatStatus() {
   }
 }
 
+// Gelen mesajları okundu olarak işaretler
+async function markIncomingMessagesRead(chatId, messageDocs) {
+  if (
+    !currentUser ||
+    activeChatId !== chatId ||
+    document.visibilityState !== "visible"
+  ) {
+    return;
+  }
+
+  const unread = messageDocs.filter((messageDoc) => {
+    const data = messageDoc.data();
+
+    return (
+      data.senderId !== currentUser.uid &&
+      !(Array.isArray(data.readBy) &&
+        data.readBy.includes(currentUser.uid)) &&
+      !markingRead.has(messageDoc.id)
+    );
+  });
+
+  for (const messageDoc of unread) {
+    markingRead.add(messageDoc.id);
+
+    try {
+      await updateDoc(
+        doc(db, "chats", chatId, "messages", messageDoc.id),
+        { readBy: arrayUnion(currentUser.uid) }
+      );
+    } catch (error) {
+      console.error("Okundu bilgisi güncellenemedi:", error);
+    } finally {
+      markingRead.delete(messageDoc.id);
+    }
+  }
+}
+
 // Sohbeti açar
 async function openChat(person) {
   selectedUser = person;
@@ -463,6 +506,8 @@ async function openChat(person) {
   stopMessagesListener = null;
 
   const chatId = makeChatId(currentUser.uid, person.uid);
+  activeChatId = chatId;
+
   const chatRef = doc(db, "chats", chatId);
 
   try {
@@ -477,7 +522,6 @@ async function openChat(person) {
       });
     }
 
-    // Kullanıcı sohbet değiştirdiyse eski sohbeti dinleme
     if (selectedUser?.uid !== person.uid) return;
 
     const messageQuery = query(
@@ -520,14 +564,41 @@ async function openChat(person) {
           body.className = "message-text";
           body.textContent = data.text || "";
 
+          const meta = document.createElement("div");
+          meta.className = "message-meta";
+
           const time = document.createElement("time");
           time.textContent = formatTime(data.createdAt);
+          meta.append(time);
 
-          bubble.append(body, time);
+          // Kendi mesajlarında gönderildi/okundu işareti göster.
+          if (data.senderId === currentUser.uid) {
+            const receipt = document.createElement("span");
+            receipt.className = "message-receipt";
+
+            const isRead =
+              Array.isArray(data.readBy) &&
+              data.readBy.includes(person.uid);
+
+            receipt.textContent = isRead ? "✓✓" : "✓";
+            receipt.setAttribute(
+              "aria-label",
+              isRead ? "Okundu" : "Gönderildi"
+            );
+            receipt.title = isRead ? "Okundu" : "Gönderildi";
+
+            if (isRead) receipt.classList.add("read");
+
+            meta.append(receipt);
+          }
+
+          bubble.append(body, meta);
           messagesBox.append(bubble);
         }
 
         messagesBox.scrollTop = messagesBox.scrollHeight;
+
+        void markIncomingMessagesRead(chatId, snapshot.docs);
       },
       (error) => showToast("Mesajlar yüklenemedi: " + error.message)
     );
@@ -555,7 +626,8 @@ messageForm.addEventListener("submit", async (event) => {
       text,
       senderId: currentUser.uid,
       senderName: currentProfile.username,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      readBy: []
     });
 
     await setDoc(
@@ -577,11 +649,40 @@ messageForm.addEventListener("submit", async (event) => {
   }
 });
 
+// Sayfa tekrar görünür olunca gelen mesajları okundu işaretle
+document.addEventListener("visibilitychange", () => {
+  if (
+    document.visibilityState !== "visible" ||
+    !activeChatId ||
+    !selectedUser ||
+    !currentUser
+  ) {
+    return;
+  }
+
+  const chatId = activeChatId;
+
+  getDocs(query(
+    collection(db, "chats", chatId, "messages"),
+    orderBy("createdAt"),
+    limit(300)
+  ))
+    .then((snapshot) => {
+      if (activeChatId === chatId) {
+        void markIncomingMessagesRead(chatId, snapshot.docs);
+      }
+    })
+    .catch((error) => {
+      console.error("Okundu bilgisi yenilenemedi:", error);
+    });
+});
+
 // Çıkış
 document.querySelector("#logoutButton").addEventListener("click", async () => {
   cleanListenerStops();
 
   selectedUser = null;
+  activeChatId = null;
   presenceData = {};
 
   await signOut(auth);
@@ -590,6 +691,7 @@ document.querySelector("#logoutButton").addEventListener("click", async () => {
 // Sohbetten geri dön
 document.querySelector("#backButton").addEventListener("click", () => {
   document.querySelector("#appScreen").classList.remove("chat-open");
+  activeChatId = null;
 });
 
 // Yönetici paneli
@@ -646,7 +748,6 @@ function openAdminPanel() {
         name.textContent = user.username || "Kullanıcı";
 
         const lastSeen = document.createElement("small");
-
         lastSeen.textContent =
           row.id === currentUser.uid
             ? "Bu hesap"
@@ -674,6 +775,7 @@ onAuthStateChanged(auth, async (user) => {
     selectedUser = null;
     allUsers = [];
     presenceData = {};
+    activeChatId = null;
 
     appScreen.classList.add("hidden");
     authScreen.classList.remove("hidden");
